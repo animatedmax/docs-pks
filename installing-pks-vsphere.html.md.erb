@@ -1,12 +1,12 @@
 ---
-title: Installing PKS on vSphere
+title: Installing Enterprise PKS on vSphere
 owner: PKS
 iaas: vSphere
 ---
 
 <strong><%= modified_date %></strong>
 
-This topic describes how to install and configure Pivotal Container Service (PKS) on vSphere.
+This topic describes how to install and configure <%= vars.product_full %> on vSphere with Flannel.  
 
 ##<a id='prerequisites'></a>Prerequisites
 
@@ -15,19 +15,19 @@ For more information, see [vSphere Prerequisites and Resource Requirements](vsph
 
 <%= partial 'prerequisites' %>
 
-##<a id='install'></a> Step 1: Install PKS
+##<a id='install'></a> Step 1: Install <%= vars.product_short %>
 
 <%= partial 'install-pks' %>
 
-##<a id='configure'></a> Step 2: Configure PKS
+##<a id='configure'></a> Step 2: Configure <%= vars.product_short %>
 
-Click the orange **Pivotal Container Service** tile to start the configuration process.
+Click the orange **<%= vars.product_tile %>** tile to start the configuration process.
 
-![Pivotal Container Service tile on the Ops Manager installation dashboard](images/pks-tile-orange.png)
+![PKS tile on the Ops Manager installation dashboard](images/pks-tile-orange.png)
 
-  <p class="note warning"><strong>WARNING</strong>: When you configure the PKS tile,
+  <p class="note warning"><strong>WARNING</strong>: When you configure the <%= vars.product_tile %> tile,
   do not use spaces in any field entries. This includes spaces between characters as well as
-  leading and trailing spaces. If you use a space in any field entry, the deployment of PKS fails.</p>
+  leading and trailing spaces. If you use a space in any field entry, the deployment of <%= vars.product_short %> fails.</p>
 
 ###<a id='azs-networks'></a> Assign AZs and Networks
 
@@ -51,28 +51,7 @@ Click the orange **Pivotal Container Service** tile to start the configuration p
 
 ###<a id='networking'></a> Networking
 
-To configure networking, do the following:
-
-1. Click **Networking**.
-1. Under **Container Networking Interface**, select **Flannel**.
-  <img src="images/networking-flannel.png" alt="Networking pane configuration" width="425">
-1. (Optional) Enter values for **Kubernetes Pod Network CIDR Range** and **Kubernetes Service Network CIDR Range**. 
-	* Ensure that the CIDR ranges do not overlap and have sufficient space for your deployed services.
-	* Ensure that the CIDR range for the **Kubernetes Pod Network CIDR Range** is large enough to accommodate the expected maximum number of pods.
-1. (Optional) Configure a global proxy for all outgoing HTTP and HTTPS traffic from your Kubernetes clusters.  This setting will not set the proxy for running Kubernetes workloads or pods.
-<br><br>
-Production environments can deny direct access to public Internet services and between internal services by placing an HTTP or HTTPS proxy in the network path between Kubernetes nodes and those services.
-<br><br>
-If your environment includes HTTP or HTTPS proxies, configuring PKS to use these proxies allows PKS-deployed Kubernetes nodes to access public Internet services and other internal services. Follow the steps below to configure a global proxy for all outgoing HTTP/HTTPS traffic from your Kubernetes clusters:
-  1. Under **HTTP/HTTPS proxy**, select **Enabled**.
-      <img src="images/networking-https-proxy.png" alt="Networking pane configuration" width="325">
-  1. Under **HTTP Proxy URL**, enter the URL of your HTTP/HTTPS proxy endpoint. For example, `http://myproxy.com:1234`.
-  1. (Optional) If your proxy uses basic authentication, enter the username and password under **HTTP Proxy Credentials**.
-  1. Under **No Proxy**, enter the service network CIDR where your PKS cluster is deployed. List any additional IP addresses or domain names that should bypass the proxy. The **No proxy** property for vSphere accepts wildcard domains denoted by a prefixed `*.` or `.`, for example `*.example.com` and `.example.com`.
-<p class="note"><strong>Note</strong>: Because some jobs in the VMs accept `*.` as a wildcard, while others only accept `.`, we recommend that you define a wildcard domain using both of them. For example, to denote `example.com` as a wildcard domain, add both `*.example.com` and `example.com` to the **No proxy** property.</p>
-    <p class="note"><strong>Note</strong>: By default, the <code>.internal</code>, <code>10.100.0.0/8</code>, and <code>10.200.0.0/8</code> IP address ranges are not proxied. This allows internal PKS communication.</p>
-1. Under **Allow outbound internet access from Kubernetes cluster vms (IaaS-dependent)**, ignore the **Enable outbound internet access** checkbox.
-1. Click **Save**.
+<%= partial 'networking-vsphere' %>
 
 ###<a id='uaa'></a> UAA
 
@@ -82,7 +61,7 @@ If your environment includes HTTP or HTTPS proxies, configuring PKS to use these
 
 <%= partial 'monitoring' %>
 
-###<a id='usage'></a> Usage Data
+###<a id='telemetry'></a> CEIP and Telemetry
 
 <%= partial 'usage-data' %>
 
@@ -90,57 +69,37 @@ If your environment includes HTTP or HTTPS proxies, configuring PKS to use these
 
 <%= partial 'errands' %>
 
-###<a id='resource-config'></a> Resource Config
+###<a id='resource-config'></a> (Optional) Resource Config
 
-To modify the resource usage of PKS, click **Resource Config** and edit the **Pivotal Container Service** job.
 
-![Resource pane configuration](images/resources.png)
+To modify the resource usage of <%= vars.product_short %> and specify your PKS API load balancer, follow the steps below:
 
-<p class="note"><strong>Note</strong>: If you experience timeouts or slowness when interacting with the PKS API, select a <strong>VM Type</strong> with greater CPU and memory resources for the <strong>Pivotal Container Service</strong> job.</p>
+1. Select **Resource Config**.
+    ![Resource pane configuration](images/resources-vsphere.png)
+1. (Optional) Edit other resources used by the **PKS API** job.
+The **PKS API** job requires a VM with the following minimum
+resources:  
+  <table>
+    <tr>
+      <th>CPU</th>
+      <th>Memory</th>
+      <th>Disk</th>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>8&nbsp;GB</td>
+      <td>29&nbsp;GB</td>
+    </tr>
+  </table>
+    <p class="note"><strong>Note</strong>: The automatic <b>VM Type</b> value matches the minimum recommended size for the <b>Pivotal Container Service</b> job. If you experience timeouts or slowness when interacting with the PKS API, select a <strong>VM Type</strong> with greater CPU and memory resources.</p>
+1. (Optional) In the **Load Balancers** column, enter the name of your PKS API load balancer.  
+    <%= partial 'lb-resource-config' %>
+1. (Optional) If you do not use a NAT instance, select **Internet Connected** to allow component instances direct access to the internet.  
 
 ## <a id='apply-changes'></a> Step 3: Apply Changes
 
 <%= partial 'apply-changes' %>
 
-##<a id='retrieve-pks-api'></a> Step 4: Retrieve the PKS API Endpoint
+## <a id='next-install-step'></a> Next Installation Step
 
-<%= partial 'share-endpoint' %>
-
-## <a id='loadbalancer-pks-api'></a> Step 5: Configure External Load Balancer
-
-After you install the PKS tile, configure an external load balancer to access the PKS API from outside the network.
-You can use any external load balancer.
-
-Your external load balancer forwards traffic to the PKS API endpoint on ports 8443 and 9021.
-Configure the external load balancer to resolve to the domain name you set in the [PKS API](#pks-api) section of the tile configuration.
-
-Configure your load balancer with the following information:
-
-- IP address from [Retrieve PKS API Endpoint](#retrieve-pks-api)
-- Ports 8443 and 9021
-- HTTPS or TCP protocol
-
-##<a id='next-steps'></a> Next Steps
-
-After installing PKS on vSphere, you may want to do one or more of the following:
-
-* [Install the PKS and Kubernetes CLIs](#clis)
-* [Configure PKS API Access](#api)
-* [Configure Authentication for PKS](#auth)
-* [Integrate VMware Harbor with PKS](#harbor)
-
-### <a name='clis'></a> Install the PKS and Kubernetes CLIs
-
-<%= partial 'install-cli' %>
-
-### <a name='api'></a> Configure PKS API Access
-
-Follow the procedures in [Configuring PKS API Access](configure-api.html).
-
-### <a name='auth'></a> Configure Authentication for PKS
-
-<%= partial 'configure-auth' %>
-
-### <a name='harbor'></a> Integrate VMware Harbor with PKS
-
-<%= partial 'harbor' %>
+To configure the PKS API load balancer, follow the instructions in [Configure PKS API Load Balancer](vsphere-configure-pks-api.html).

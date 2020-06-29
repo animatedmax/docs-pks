@@ -5,7 +5,7 @@ owner: PKS
 
 <strong><%= modified_date %></strong>
 
-This topic describes how you can maintain workload uptime for Kubernetes clusters deployed with Pivotal Container Service (PKS).
+This topic describes how you can maintain workload uptime for Kubernetes clusters deployed with <%= vars.product_full %>.
 
 To maintain workload uptime, configure the following settings in your deployment manifest:
 
@@ -16,7 +16,7 @@ To increase uptime, you can also refer to the documentation for the services tha
 
 ##<a id='upgrades'></a> About Workload Upgrades
 
-The PKS tile contains an errand that upgrades all Kubernetes clusters.
+The <%= vars.product_tile %> tile contains an errand that upgrades all Kubernetes clusters.
 Upgrades run on a single VM at a time.
 While one worker VM runs an upgrade, the workload on that VM goes down.
 The additional worker VMs continue to run replicas of your workload, maintaining the uptime of your workload.
@@ -108,6 +108,19 @@ See the following table for more information:
     <th>Description</th>
   </tr>
   <tr>
+    <td><pre>podAntiAffinity: <br>requiredDuringSchedulingIgnoredDuringExecution</pre></td>
+    <td>
+      <ul>
+        <li>When you set <code>podAntiAffinity</code> to the <code>requiredDuringSchedulingIgnoredDuringExecution</code>
+        value, the pod is eligible to be scheduled only on worker nodes that are not running a replica of this pod.
+        If the requirement cannot be met, scheduling fails.</li>
+        <li>Alternatively, you can set <code>podAntiAffinity</code> to the <code>preferredDuringSchedulingIgnoredDuringExecution</code>
+        value. With this rule, the scheduler tries to schedule pod replicas on different worker nodes.
+        If it is not possible, the scheduler assigns more than one pod to the same worker node.</li>
+      </ul>
+    </td>
+  </tr>
+  <tr>
     <td><pre>matchExpressions: <br>- key: "app"</pre></td>
     <td>This value matches <code>spec.template.metadata.labels.app</code>.</td>
   </tr>
@@ -135,8 +148,6 @@ Depending on the underlying storage type, PVs are either completely free of zona
 To ensure the uptime of your PVs during a cluster upgrade, Pivotal recommends that you have at least two nodes per AZ.
 By configuring your workload as suggested, Kubernetes reschedules pods in the other node of the same AZ while BOSH is performing the upgrade.
 
-For information about configuring PVs in PKS, see [Configuring PersistentVolumes](configuring-pvs.html).
+For information about configuring PVs in <%= vars.product_short %>, see [Configuring and Using PersistentVolumes](volumes.html).
 
-For information about using dynamic PVs in PKS, see [Using Dynamic PersistentVolumes](volumes.html).
-
-For information about the supported storage topologies for PKS on vSphere, see [PersistentVolume Storage Options on vSphere](vsphere-persistent-storage.html).
+For information about the supported storage topologies for <%= vars.product_short %> on vSphere, see [PersistentVolume Storage Options on vSphere](vsphere-persistent-storage.html).

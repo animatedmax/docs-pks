@@ -5,276 +5,87 @@ owner: PKS
 
 <strong><%= modified_date %></strong>
 
-This topic describes the metrics that the Pivotal Container Service (PKS) tile
-sends when you enable the VMware Customer Experience Improvement Program (CEIP)
-or the Pivotal Telemetry Program (Telemetry). You can opt in or opt out of
-either program in the **Usage Data** pane of the PKS tile.
+This topic describes the VMware Customer Experience Improvement Program (CEIP)
+and the Pivotal Telemetry Program (Telemetry) used in the <%= vars.product_tile %> tile.
 
-For more information, see the _Installing PKS_ topic for your IaaS:
+## <a id="overview"></a>Overview
 
-* [vSphere](installing-pks-vsphere.html#usage)
-* [vSphere with NSX-T Integration](installing-nsx-t.html#usage)
-* [Google Cloud Platform (GCP)](installing-pks-gcp.html#usage)
-* [Amazon Web Services (AWS)](installing-pks-aws.html#usage)
+The CEIP and Telemetry program allow VMware and Pivotal to collect data from customer installations to improve your <%= vars.product_short %> experience.
+Collecting data at scale enables us to identify patterns and alert you to warning signals in your <%= vars.product_short %> installation.
 
-## <a id="envelope"></a>Event Envelope Properties
+### <a id="participation"></a>Participation Levels
 
-When PKS sends metrics to CEIP or Telemetry, the tile packages the data with
-the following deployment information:
+You can configure <%= vars.product_short %> to use one of the following CEIP and Telemetry participation levels:
 
-<table>
-  <tr>
-    <th>Property Name</th>
-    <th>Property Description</th>
-    <th>Example Data</th>
-    <th>Added in PKS Version</th>
-  </tr>
-  <tr>
-    <td><strong>event</strong></td>
-    <td>The type of event</td>
-    <td>create_cluster</td>
-    <td>v1.1</td>
-  </tr>
-  <tr>
-    <td><strong>product_version</strong></td>
-    <td>PKS tile version</td>
-    <td>1.2.0-build.40</td>
-    <td>v1.1</td>
-  </tr>
-  <tr>
-    <td><strong>cloud_provider</strong></td>
-    <td>Cloud provider for the PKS installation</td>
-    <td>GCP</td>
-    <td>v1.1</td>
-  </tr>
-  <tr>
-    <td><strong>vcenter_id</strong></td>
-    <td>vCenter ID</td>
-    <td>00000a11-22bb-3333-4c4c-555566667777</td>
-    <td>v1.1</td>
-  </tr>
-</table>
++ **None:** This level disables data collection.
 
-## <a id="events"></a>Cluster Events
++ **Standard:** (Default) This level collects data anonymously. Your data is used to
+inform the ongoing development of <%= vars.product_short %>.
 
-PKS sends metrics for the cluster management events shown in the table below:
++ **Enhanced:** This level enables VMware and Pivotal to warn you about
+security vulnerabilities and potential issues with your software configurations.
+For more information, see [Benefits of the Enhanced Participation Level](#benefits) below.
+
+<p class="note"><strong>Note:</strong> <%= vars.product_short %> does not collect any personally identifiable information (PII) at either participation level.
+For a list of the data <%= vars.product_short %> collects, see <a href="#data-dictionary">Data Dictionary</a>.</p>
+
+For instructions on configuring CEIP and Telemetry participation, see the [Installing <%= vars.product_short %>](installing.html) topic for your IaaS.
+
+### <a id="benefits"></a> Benefits of the Enhanced Participation Level
+
+Benefits you receive with the Enhanced participation level include but are not limited to the following:
+
+* **Usage data:** This gives you access to data about Kubernetes pod and cluster usage in your <%= vars.product_short %> installation.
+* **Access to your telemetry data:** This gives you access to configuration and usage data about your <%= vars.product_short %> installation.
+* **Proactive support:** This enables VMware and Pivotal to proactively warn you about unhealthy patterns.
+* **Benchmarks:** This is your usage relative to the rest of the <%= vars.product_short %> user base.
+
+The table below compares the Standard and Enhanced participation levels.
 
 <table>
   <tr>
-    <th>Event Name</th>
-    <th>Event Description</th>
-    <th>Property Name</th>
-    <th>Property Description</th>
-    <th>Added in PKS Version</th>
+    <th>Benefit</th>
+    <th>Standard Level</th>
+    <th>Enhanced Level</th>
   </tr>
   <tr>
-    <td rowspan="8"><strong>create_cluster</strong></td>
-    <td rowspan="8">This event is generated when a user creates a cluster.</td>
-    <td><strong>user_id</strong></td>
-    <td>A hashed value of the username.</td>
-    <td>v1.1</td>
+    <td>Usage data</td>
+    <td>Raw data</td>
+    <td>Reports and trend analysis</td>
   </tr>
   <tr>
-    <td><strong>timestamp</strong></td>
-    <td>The time when the user created the cluster.</td>
-    <td>v1.1</td>
+    <td>Access to your telemetry data</td>
+    <td>No</td>
+    <td>Yes</td>
   </tr>
   <tr>
-    <td><strong>plan_name</strong></td>
-    <td>The name of the PKS plan that was used to create the cluster.</td>
-    <td>v1.1</td>
+    <td>Proactive support</td>
+    <td>No</td>
+    <td>Yes</td>
   </tr>
   <tr>
-    <td><strong>plan_id</strong></td>
-    <td>The ID of the PKS plan that was used to create the cluster.</td>
-    <td>v1.1</td>
-  </tr>
-  <tr>
-    <td><strong>cluster_name</strong></td>
-    <td>The name of the cluster.</td>
-    <td>v1.1</td>
-  </tr>
-  <tr>
-    <td><strong>cluster_id</strong></td>
-    <td>The ID of the cluster.</td>
-    <td>v1.1</td>
-  </tr>
-  <tr>
-    <td><strong>number_of_workers</strong></td>
-    <td>The number of worker node VMs in the cluster.</td>
-    <td>v1.1</td>
-  </tr>
-  <tr>
-    <td><strong>number_of_masters</strong></td>
-    <td>The number of master node VMs in the cluster.</td>
-    <td>v1.2</td>
-  </tr>
-  <tr>
-    <td rowspan="8"><strong>resize_cluster</strong></td>
-    <td rowspan="8">This event is generated when a cluster is resized.</td>
-    <td><strong>user_id</strong></td>
-    <td>A hashed value of the username.</td>
-    <td>v1.1</td>
-  </tr>
-  <tr>
-    <td><strong>timestamp</strong></td>
-    <td>The time when the user created the cluster.</td>
-    <td>v1.1</td>
-    </tr>
-  <tr>
-    <td><strong>plan_name</strong></td>
-    <td>The name of the PKS plan that was used to create the cluster.</td>
-    <td>v1.1</td>
-  </tr>
-  <tr>
-    <td><strong>plan_id</strong></td>
-    <td>The ID of the PKS plan that was used to create the cluster.</td>
-    <td>v1.1</td>
-  </tr>
-  <tr>
-    <td><strong>cluster_name</strong></td>
-    <td>The name of the cluster.</td>
-    <td>v1.1</td>
-  </tr>
-  <tr>
-    <td><strong>cluster_id</strong></td>
-    <td>The ID of the cluster.</td>
-    <td>v1.1</td>
-  </tr>
-  <tr>
-    <td><strong>old_number_of_workers</strong></td>
-    <td>The number of worker node VMs in the cluster before the resize event.</td>
-    <td>v1.1</td>
-  </tr>
-  <tr>
-    <td><strong>new_number_of_workers</strong></td>
-    <td>The number of worker node VMs in the cluster after the resize event.</td>
-    <td>v1.1</td>
-  </tr>
-  <tr>
-    <td rowspan="6"><strong>delete_cluster</strong></td>
-    <td rowspan="6">This event is generated when a user deletes a cluster.</td>
-    <td><strong>user_id</strong></td>
-    <td>A hashed value of the username.</td>
-    <td>v1.1</td>
-  </tr>
-  <tr>
-    <td><strong>timestamp</strong></td>
-    <td>The time when the user created the cluster.</td>
-    <td>v1.1</td>
-  </tr>
-  <tr>
-    <td><strong>plan_name</strong></td>
-    <td>The name of the PKS plan that was used to create the cluster.</td>
-    <td>v1.1</td>
-  </tr>
-  <tr>
-    <td><strong>plan_id</strong></td>
-    <td>The ID of the PKS plan that was used to create the cluster.</td>
-    <td>v1.1</td>
-  </tr>
-  <tr>
-    <td><strong>cluster_name</strong></td>
-    <td>The name of the cluster.</td>
-    <td>v1.1</td>
-  </tr>
-  <tr>
-    <td><strong>cluster_id</strong></td>
-    <td>The ID of the cluster.</td>
-    <td>v1.1</td>
-  </tr>
-  <tr>
-    <td rowspan="3"><strong>api_started</strong></td>
-    <td rowspan="3">This event is generated when the PKS API is started.</td>
-  </tr>
-  <tr>
-    <td><strong>authentication_mode</strong></td>
-    <td>The authentication mode used to access a Kubernetes cluster.</td>
-    <td>v1.2</td>
-  </tr>
-  <tr>
-    <td><strong>timestamp</strong></td>
-    <td>The time when the PKS API started.</td>
-    <td>v1.2</td>
+    <td>Benchmarks</td>
+    <td>No</td>
+    <td>Yes</td>
   </tr>
 </table>
 
-## <a id="cluster"></a>Cluster Metrics
+<p class="note"><strong>Note:</strong> VMware and Pivotal reserve the right to change the benefits associated with the Enhanced participation level at any time.</p>
 
-PKS sends both agent metrics and cluster pod metrics for each cluster.
+## <a id="system-components"></a> System Components
 
-The following table describes cluster agent metrics:
+The CEIP and Telemetry programs use the following components to collect data:
 
-<table>
-  <tr>
-    <th>Agent Metric Name</th>
-    <th>Agent Metric Description</th>
-    <th>Example</th>
-    <th>Added in PKS Version</th>
-  </tr>
-  <tr>
-    <td><strong>agentid</strong></td>
-    <td>The unique BOSH-generated deployment name for the cluster.</td>
-    <td>service-instance_00000a11-22bb-3333-4c4c-555566667777</td>
-    <td>v1.1</td>
-  </tr>
-  <tr>
-    <td><strong>isvrlienabled</strong></td>
-    <td>If vRealize Log Insight (vRLI) is enabled, this value is true. If vRLI is disabled, this value if false.</td>
-    <td>true</td>
-    <td>v1.1</td>
-  </tr>
-  <tr>
-    <td><strong>isvropsenabled</strong></td>
-    <td>If vRealize Operations (vROps) is enabled, this value is true. If vROps is disabled, this value is false.</td>
-    <td>false</td>
-    <td>v1.1</td>
-  </tr>
-  <tr>
-    <td><strong>iswavefrontenabled</strong></td>
-    <td>If Wavefront is enabled, this value is true. If Wavefront is disabled, this value is false.</td>
-    <td>true</td>
-    <td>v1.1</td>
-  </tr>
-  <tr>
-    <td><strong>vcenter_id</strong></td>
-    <td>This is your vCenter ID.</td>
-    <td>00000a11-22bb-3333-4c4c-555566667777</td>
-    <td>v1.1</td>
-  </tr>
-</table>
++ **Telemetry Server:** This component runs on the PKS control plane. The server receives telemetry events from the PKS API and metrics from Telemetry agent pods. The server sends events and metrics to a data lake for archiving and analysis.
 
-The following table describes cluster pod metrics:
++ **Telemetry Agent Pod:** This component runs in each Kubernetes cluster as a deployment with one replica. Agent pods periodically poll the Kubernetes API for cluster metrics and send the metrics to the Telemetry server.
 
-<table>
-  <tr>
-    <th>Cluster Pod Metric Name</th>
-    <th>Cluster Pod Metric Description</th>
-    <th>Example</th>
-    <th>Added in PKS Version</th>
-  </tr>
-  <tr>
-    <td><strong>collected_at</strong></td>
-    <td>This timestamp represents the metric collection time on the agent.</td>
-    <td>2018-05-31 21:45:27.681 UTC</td>
-    <td>v1.1</td>
-  </tr>
-  <tr>
-    <td><strong>cpu_used</strong></td>
-    <td>This value represents how much CPU was in use at the time when the event happened.</td>
-    <td>11412427</td>
-    <td>v1.1</td>
-  </tr>
-  <tr>
-    <td><strong>memory_used</strong></td>
-    <td>This value represents how much memory was in use at the time when the event happened.</td>
-    <td>4816896</td>
-    <td>v1.1</td>
-  </tr>
-  <tr>
-    <td><strong>pkst_kubernetesclusterinfo__fk</strong></td>
-    <td>This value is a foreign key that points to an entry in the <em>pkst_kubernetesclusterinfo</em> database.</td>
-    <td>77777a66-55bb-4444-3c3c-222211110000</td>
-    <td>v1.1</td>
-  </tr>
-</table>
+The following diagram shows how telemetry data flows through the system components:
+
+<%# The below diagram can be edited at: https://docs.google.com/presentation/d/1GKYWnT5efjMwyPx23NCoD2VIS-NVzfHDy_6WDyrwgtU/edit?usp=sharing %>
+<a href="images/telemetry-data-flow.png" target="_blank"><img src="images/telemetry-data-flow.png" alt="
+  Telemetry System Data Flow"></a>
+
+## <a id="data-dictionary"></a>Data Dictionary
+
+For information about PKS Telemetry collection and reporting, see the [PKS Telemetry Data](https://drive.google.com/a/pivotal.io/file/d/1j05pLFTymmrxsoztzKEwsST0nC4OpKrN/view?usp=sharing) spreadsheet, hosted on Google Drive.  

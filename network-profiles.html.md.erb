@@ -5,172 +5,58 @@ owner: PKS
 
 <strong><%= modified_date %></strong>
 
-This topic describes how to create and use network profiles for Kubernetes clusters
-provisioned with Pivotal Container Service (PKS) on vSphere with NSX-T integration.
+This topic describes how to use network profiles for Kubernetes clusters
+provisioned with <%= vars.product_full %> on vSphere with NSX-T integration.
 
-## <a id='about'></a> About Network Profiles
+Network profiles let you customize NSX-T configuration parameters.
 
-Network profiles enable you to specify NSX-T configuration parameters at the time of cluster creation.
-See the following table for supported use cases:
+## <a id='assign-profile'></a> Assign a Network Profile to a Cluster
 
-Profile Type 	| Description
-----------------|----------------------------
-Load balancer sizing		| Customize the size of the load balancer deployed with your Kubernetes cluster. For more information, see [Load Balancer Sizing](#lb-sizing).
-Routable IP addresses for pods	| Assign routable IP addresses, from a dedicated IP block, to pods in your Kubernetes cluster. For more information, see [Routable IP Addresses for Pods](#routable-pods).
+You can assign a network profile to a Kubernetes cluster at the time of cluster creation.
+To assign a network profile to a Kubernetes cluster, you must do the following:
 
-### <a id='lb-sizing'></a> Load Balancer Sizing
+1. Define a network profile configuration in a JSON file.
+For instructions on how to define network profile configurations,
+see [Defining Network Profiles](network-profiles-define.html).
+1. Create a network profile using the JSON file.
+For instructions on how to create network profiles, see [Create a Network Profile](#create-profile).
+1. Create a Kubernetes cluster with the network profile.
+For instructions on how to create a Kubernetes cluster with a network profile,
+see [Create a Cluster with a Network Profile](#create-cluster).
 
-Using a network profile, you can customize the size of the load balancer that is deployed when a Kubernetes cluster is created using PKS.
-See [Load Balancers in PKS Deployments on vSphere with NSX‑T](about-lb.html#with-nsx-t) for more information.
+<p class="note"><strong>Note:</strong> Only <%= vars.product_short %> cluster administrators 
+can create and delete network profiles.
+Cluster managers can list existing network profiles and assign them to clusters.</p>
 
-### <a id='routable-pods'></a> Routable IP Addresses for Pods
+### <a name="create-cluster"></a> Create a Cluster with a Network Profile
 
-Using a network profile, you can assign routable IP addresses from a dedicated routable IP block to pods in your Kubernetes cluster.
-For more information, see [Routable IP Block for Pods](#routable).
-
-When a cluster is deployed using that network profile,
-the routable IP block overrides the default non-routable IP block described in [Non-Routable IP Block for Pods](#non-routable).
-
-#### <a name='non-routable'></a> Non-Routable IP Block for Pods
-
-When you configure your NSX-T infrastructure for PKS, you must create a **Pods IP Block**.
-For more information, see [Plan IP Blocks](nsxt-prepare-env.html#plan-ip-blocks) in _Preparing NSX-T Before Deploying PKS_.
-By default, this subnet is non-routable.
-
-When a Kubernetes cluster is deployed, each pod receives an IP address from the **Pods IP Block** you created.
-Because the pod IP addresses are non-routable, NSX-T creates a SNAT rule on the T0 router to allow network egress from the pods.
-This configuration is shown in the diagram below.
-
-  <img src="images/nsxt/non-routable-pods.png" alt="Non-routable pod network with SNAT">
-
-#### <a name='routable'></a> Routable IP Block for Pods
-
-With network profiles, you can override the default behavior described in [Non-Routable IP Blocks](#non-routable) by using routable pods.
-To use routable pods, do the following after you deploy PKS:
-
-1. Define a routable /24 IP block in NSX-T. For information about creating IP blocks,
-see [Create NSX-T Objects](nsxt-prepare-env.html#create-objects-network-objects) in _Preparing NSX-T Before Deploying PKS_.
-2. Define a network profile that references the routable IP block.
-For information about defining a network profile,
-see [Define a Network Profile](#define-profile).
-
-When you deploy a Kubernetes cluster using that network profile, each pod receives a routable IP address.
-This configuration is shown in the diagram below.
-
-  <img src="images/nsxt/routable-pods.png" alt="Routable pod network using network profiles">
-
-If you use routable pods, the SNAT rule is not created.
-
-### <a id='permissions'></a> Required Permissions
-
-Only PKS administrators can create and delete network profiles. For more information, see:
-
-* [Define a Network Profile](#define-profile)
-* [Create a Network Profile](#create-profile)
-* [Delete a Network Profile](#delete-profile)
-
-Kubernetes managers can list existing network profiles, assign them to clusters, and view cluster details.
-For more information, see:
-
-* [List Network Profiles](#list-profiles)
-* [Create a Cluster With a Network Profile](#create-cluster)
-* [View Cluster Details](#view-details)
-
-## <a id="define-profile"></a> Define a Network Profile
-
-Before you can create a network profile, you must define your network profile configuration in a JSON file as described below.
-For information about creating network profiles, see [Create a Network Profile](#create-profile).
-
-Parameter 			| Description
---------------------|----------------------------
-`name`	  			| User-defined name for the network profile.
-`description`   	| User-defined description for the network profile.
-`parameters`    	| One or more name-value pairs.
-`lb_size`	  		| Size of the load balancer deployed with the Kubernetes cluster:<br> `small`, `medium`, or `large`.
-`pod_routable`  	| Either `true` or `false`. Set to `true` to enable routable pods<br> or to `false` to use a non-routable IP block that overrides<br> the default.
-`pod_ip_block_ids`	| UUID of the IP block from NSX Manager, comma-separated.
-
-<p class="note"><strong>Note</strong>: You must include the <code>lb_size</code> parameter in any network profile you define.
-To use the default load balancer, set the value of <code>lb_size</code> to <code>small</code>.</p>
-
-The following network profile, `np-lb-med.json`, defines a medium load balancer:
+To create an <%= vars.product_short %>-provisioned Kubernetes cluster with a network profile, run the following command:
 
 ```
-{
- "name": "lb-profile-medium",
- "description": "Network profile for medium size NSX-T load balancer",
- "parameters": { 
- 	"lb_size": "medium" 
- 	}
-}
+pks create-cluster CLUSTER-NAME --external-hostname HOSTNAME --plan PLAN-NAME --network-profile NETWORK-PROFILE-NAME
 ```
 
-The following network profile, `np-routable-pods.json`, defines routable pod addresses from two /24 IP blocks:
+Where:
 
-```
-{
-  "description": "Network profile with small load balancer and two routable pod networks",
-  "name": "small-routable-pod",
-  "parameters": {
-    "lb_size": "small",
-    "pod_routable": true,
-    "pod_ip_block_ids": [
-      "ebe78a74-a5d5-4dde-ba76-9cf4067eee55",
-      "ebe78a74-a5d5-4dde-ba76-9cf4067eee56"
-    ]
-  }
-}
-```
+* `CLUSTER-NAME` is a unique name for your cluster.
+* `HOSTNAME` is your external hostname used for accessing the Kubernetes API.
+* `PLAN-NAME` is the name of the <%= vars.product_short %> plan you want to use for your cluster.
+* `NETWORK-PROFILE-NAME` is the name of the network profile you want to use for your cluster.
 
-In addition, you can use a network profile to override the global
-non-routable **Pods IP Block** that you configured in preparation
-for deploying PKS with NSX-T with a new non-routable IP block.
-For information about preparing your NSX-T environment
-for installing PKS,
-see [Preparing NSX-T Before Deploying PKS](nsxt-prepare-env.html).
+## <a id="manage-profiles"></a> Manage Network Profiles
 
-To do this, specify the new non-routable IP block in the network profile
-and set the `pod_routable` parameter to `false`.
-
-For example, the following network profile, `np-non-routable-pods.json`, defines a non-routable /24 IP block for pods.
-With this approach, the non-routable IP block specified in the profile definition
-overrides the default non-routable **Pods IP Block**.
-
-```
-{
-  "description": "Network profile with small load balancer and non-routable pod network",
-  "name": "small-routable-pod",
-  "parameters": {
-    "lb_size": "small",
-    "pod_routable": false,
-    "pod_ip_block_ids": [
-      "ebe78a74-a5d5-4dde-ba76-9cf4067eee57"
-    ]
-  }
-}
-```
-
-## <a id="cli-commands"></a> Create and Use Network Profiles
-
-You can create and use network profiles through the PKS CLI.
-The PKS CLI supports the following operations for network profiles:
-
-* [Create a Network Profile](#create-profile)
-* [Delete a Network Profile](#delete-profile)
-* [List Network Profiles](#list-profiles)
-* [Create a Cluster with a Network Profile](#create-cluster)
-* [View Cluster Details](#view-details)
+This section describes how to create, list, and delete network profiles.
 
 ### <a id="create-profile"></a> Create a Network Profile
 
-After you define your network profile as described in [Define a Network Profile](#define-profile),
+After you define your network profile configuration as described in [Defining Network Profiles](network-profiles-define.html),
 run the following command:
 
 ```
 pks create-network-profile PATH-TO-YOUR-NETWORK-PROFILE-CONFIGURATION
 ``` 
 Where `PATH-TO-YOUR-NETWORK-PROFILE-CONFIGURATION` is the path to the JSON file
-you created in [Define a Network Profile](#define-profile).
+you created when defining the network profile.
 
 For example:
 
@@ -181,27 +67,7 @@ Network profile small-routable-pod successfully created
 </pre>
 
 Only cluster administrators, `pks.clusters.admin`, can create network profiles.
-If a cluster manager, `pks.clusters.manage`, is attempting to create a network profile,
-the following error occurs:
-
-```
-You do not have enough privileges to perform this action. Please contact the PKS administrator.
-```
-
-### <a id="delete-profile"></a> Delete a Network Profile
-
-To delete a network profile, run the following command:
-
-```
-pks delete-network-profile NETWORK-PROFILE-NAME
-```
-
-Where `NETWORK-PROFILE-NAME` is the name of the network profile you want to delete.
-
-<p class="note"><strong>Note</strong>: You cannot delete a network profile that is in use.</p>
-
-Only cluster administrators, `pks.clusters.admin`, can delete network profiles.
-If a cluster manager, `pks.clusters.manage`, is attempting to delete a network profile,
+If a cluster manager, `pks.clusters.manage`, attempts to create a network profile,
 the following error occurs:
 
 ```
@@ -226,43 +92,83 @@ $ pks network-profiles
 	small-routable-pod 	Network profile with small load balancer and two routable pod networks
 </pre>
 
-### <a id="create-cluster"></a> Create a Cluster with a Network Profile
 
-To create a PKS-provisioned Kubernetes cluster with a network profile, run the following command:
+### <a id="delete-profile"></a> Delete a Network Profile
 
-```
-pks create-cluster CLUSTER-NAME --external-hostname HOSTNAME --plan PLAN-NAME --network-profile NETWORK-PROFILE-NAME
-```
-
-Where:
-
-* `CLUSTER-NAME` is a unique name for your cluster.
-* `HOSTNAME` is your external hostname used for accessing the Kubernetes API.
-* `PLAN-NAME` is the name of the PKS plan you want to use for your cluster.
-* `NETWORK-PROFILE-NAME` is the name of the network profile you want to use for your cluster.
-
-<p class="note"><strong>Note</strong>: You must create the network profile before you create the cluster.</p>
-
-### <a id="view-details"></a> View Cluster Details
-
-To view detailed information about your cluster, run the following command:
+To delete a network profile, run the following command:
 
 ```
-pks cluster CLUSTER-NAME
+pks delete-network-profile NETWORK-PROFILE-NAME
 ```
 
-Where `CLUSTER-NAME` is the name of your cluster. See the example output of this command below:
+Where `NETWORK-PROFILE-NAME` is the name of the network profile you want to delete.
+
+<p class="note"><strong>Note:</strong> You cannot delete a network profile that is in use.</p>
+
+Only cluster administrators, `pks.clusters.admin`, can delete network profiles.
+If a cluster manager, `pks.clusters.manage`, attempts to delete a network profile,
+the following error occurs:
 
 ```
-Name:						k8s1
-Plan Name:					Plan 1
-UUID:						6125f251-1a2e-4903-9192-efc21b27ec20
-Last Action:				CREATE
-Last Action State:			succeeded
-Last Action Description:	Instance provisioning completed
-Kubernetes Master Host:		k8s1
-Kubernetes Master Port:		8443
-Worker Nodes: 				1
-Kubernetes Master IP(s):	192.168.150.104
-Network Profile Name:		lb-profile-medium
+You do not have enough privileges to perform this action. Please contact the PKS administrator.
 ```
+
+### <a id="update-profile"></a> Change the Network Profile for a Cluster
+ 
+PKS supports changing the network profile for an already created cluster. 
+
+To change the network profile, you create a new network profile and then apply it to the existing cluster.
+
+Currently you only can change the `pod_ip_block_ids` field as follows:
+
+- Reorder the IP Block IDs in the array
+- Add more IP Block IDs in the array
+
+For more information on the `pod_ip_block_ids` field, see [Network Profile Parameters](./network-profiles-define.html#params). 
+For more information on the supported use cases for the `pod_ip_block_ids` field, see [Network Profile Use Cases](./network-profiles-define.html#use-cases).
+
+To update the `pod_ip_block_ids` network profile field for a cluster, do the following:
+
+1. Define a new network profile. In the `pod_ip_block_ids` field, reorder the IP Block IDs or add additional IP Block IDs.
+For more information on defining the network profile JSON file, see [Defining Network Profiles](./network-profiles-define.html).
+
+    <p class="note"><strong>Note:</strong> If possible, start with the exact contents of the original network profile and update the <code>pod_ip_block_ids</code> field, as well as the <code>name</code> field. If it is not possible to obtain the original network profile, create a new network profile with a unique <code>name</code> and the original values in the <code>pod_ip_block_ids</code> field. Then reorder or add IPs as desired.</p>
+
+1. Create a new network profile as described in the [Create a Network Profile](./network-profiles.html#create-profile) section. 
+
+    <p class="note"><strong>Note:</strong> The name that you specify for the new network profile must be unique and differ from the previously assigned network profile. Otherwise, you receive an error when you try to create the network profile.</p>
+
+1. Run the following command to update the cluster with the new network profile:
+
+    ```
+    pks update-cluster CLUSTER-NAME --network-profile NEW-NETWORK-PROFILE-NAME
+    ```
+
+    Where: 
+    * `CLUSTER-NAME` is the name of the existing Kubernetes cluster 
+    * `NEW-NETWORK-PROFILE-NAME` is the name of the new network profile you want to apply to the cluster.
+
+#### <a id="network-profile-validation"></a> Network Profile Update Validation
+
+There are strict validation rules for the `pks update-cluster --network-profile` command:
+
+- If a field in the original network profile is empty, the system ignores the empty field even if the field is included in the new network profile. 
+- If the existing `pod_ip_block_ids` field contains the same entries as the new network profile, the `update-cluster --network-profile` operation passes validation. 
+- If a field in the existing network profile conflicts with a field in the new network profile, the system reports the conflict and fails the validation.
+- If the field is empty in the new network profile, then the system ignores the field even if the field is not empty in the original network profile.
+
+## <a id="network-details"></a> View NSX-T Network Details
+
+You can use the following [PKS CLI command](./cli/index.html) to view NSX-T network details: 
+
+```
+pks cluster CLUSTER-NAME --details
+```
+
+Where CLUSER-NAME is the name of a Kubernetes cluster provisioned by Enterprise PKS.
+
+For example:
+
+<img src="images/nsxt/pks-cli-network-details.png" alt="View NSX-T Network Details" width="725">
+
+
